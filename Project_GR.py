@@ -19,6 +19,11 @@ def F8_RHS(r,u):
 
     return 1
 
+def F9_LHS(r,u): #no RHS
+# r D_r (phi^6 K^r_r) + 3 phi^6 K^r_r + r phi^6 K^phi_phi*D_r eta + D_u ((1-u^2) phi^6 K^r_theta
+
+    return 2
+
 
 def F12_LHS(r):
     #dr_beta_rr  =  partial_r (beta/r)
