@@ -1,9 +1,9 @@
-# Authors: Szymon Drzazga, Maciej Kucab, Ksymena Poradzis
+# Authors: Szymon Drzazga, Maciej Kucab, Ksymena Poradzisz
 # Affiliation: Jagiellonian University
 #Contact: Ksymena Poradzisz: ksymena.poradzisz@gmail.com
 #         Maciej Kucab: maciejkucab@duck.com
 #         Szymon Drzazga: 
-#Last Update: [28.12.2023]
+#Last Update: [29.12.2023]
 #Description: 
 
 import numpy as np 
