@@ -1,0 +1,6 @@
+git config --global user.name "QuelQuel7"
+git config --global user.email "maciejkucab@duck.com"
+git config --global core.editor "vim"
+git config --global -e
+git config --global core.autocrlf input
+git init
