@@ -2,7 +2,7 @@
 # Affiliation: Jagiellonian University
 #Contact: Ksymena Poradzisz: ksymena.poradzisz@gmail.com
 #         Maciej Kucab: maciejkucab@duck.com
-#         Szymon Drzazga: 
+#         Szymon Drzazga: smdrzazga@gmail.com
 #Last Update: [29.12.2023]
 #Description: 
 
