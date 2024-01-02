@@ -8,6 +8,7 @@ class Derivative:
 
     def __init__(self, size: list) -> None:
         self._matrix = np.zeros(size)
+        self._matrix = self.cheb(size)[0] 
         
     def cheb(N):
     '''Chebyshev polynomial differentiation matrix.
