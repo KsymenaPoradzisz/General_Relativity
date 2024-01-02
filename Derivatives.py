@@ -6,7 +6,7 @@ import math
 class Derivative:
     _matrix = None  # static variable to be easily accessible without redundant copying
 
-    def __init__(self, size: tuple) -> None:
+    def __init__(self, size) -> None:
         self._matrix = np.zeros(size)
         self._matrix = self.cheb(size)[0] 
         
