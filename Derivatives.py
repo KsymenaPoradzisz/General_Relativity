@@ -10,7 +10,7 @@ class Derivative:
         self._matrix = np.zeros(size)
         
     def cheb(N):
-    '''Chebushev polynomial differentiation matrix.
+    '''Chebyshev polynomial differentiation matrix.
        Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
     '''
     x      = cos(pi*arange(0,N+1)/N)
