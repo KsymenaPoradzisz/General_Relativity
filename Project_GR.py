@@ -8,6 +8,8 @@
 
 import numpy as np 
 
+import Data, Derivatives, Solver
+
 
 def F8_LHS(r,u):
 # D_u (sqrt(1-u^2) phi^6 K^r_r) + (e^eta/(sqrt(1-u^2))) D_u ((1-u^2)e^(-eta)phi^6 K^phi_phi
