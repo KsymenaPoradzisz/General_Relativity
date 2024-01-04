@@ -1,31 +1,35 @@
 import numpy as np
-import math
-
+import Cheb as Ch
 
 # storage for derivative matrices
 class Derivative:
-    _matrix = None  # static variable to be easily accessible without redundant copying
+    matrix = None  # static variable to be easily accessible without redundant copying
 
     def __init__(self, size) -> None:
-        self._matrix = np.zeros(size)
-        self._matrix = self.cheb(size)[0] 
+        self.matrix = np.zeros(size)
+        self.matrix = self.cheb(size)[0] 
+
+
+class DX(Derivative):
+    def __init__(self, N) -> None:
+        # Chebyshev polynomial differentiation matrix.
+        #Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
         
-    def cheb(N):
-    '''Chebyshev polynomial differentiation matrix.
-       Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
-    '''
-    x      = np.cos(np.pi*np.arange(0,N+1)/N)
-    if N%2 == 0:
-        x[N//2] = 0.0 # only when N is even!
-    c      = np.ones(N+1); c[0] = 2.0; c[N] = 2.0
-    c      = c * (-1.0)**np.arange(0,N+1)
-    c      = c.reshape(N+1,1)
-    X      = np.tile(x.reshape(N+1,1), (1,N+1))
-    dX     = X - X.T
-    D      = np.dot(c, 1.0/c.T) / (dX+np.eye(N+1))
-    D      = D - np.diag( D.sum(axis=1) )
-    return D,x
- 
+        # x - N dimensional array of Chebyshev points
+        # D - Matrix (N)x(N) dimensional (for spectral differentiation I guess?) 
+
+        # UGLY AF - TO REWRITE
+        x = Ch.Grid(N).grid
+        c = np.ones(N, dtype=np.float64)
+        c[0] = c[-1] = 2.0
+        c *= (-1.0)**np.arange(0, N)
+        c = c.reshape(N, 1)
+        X = np.tile(x.reshape(N, 1), (1, N))
+        dX = X - X.T
+        DivMatrix = np.dot(c, 1.0 / c.T) / (dX + np.eye(N))
+        DivMatrix -= np.diag( DivMatrix.sum(axis=1) )
+
+        self.matrix = DivMatrix
 
 
 class DR(Derivative):
