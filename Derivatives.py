@@ -1,5 +1,6 @@
 import numpy as np
 import Cheb as Ch
+from scipy.linalg import toeplitz
 
 # storage for derivative matrices
 class Derivative:
@@ -13,7 +14,8 @@ class Derivative:
         return f"{np.around(self.matrix, 4)}"
 
 
-class DX(Derivative):
+class DR(Derivative):
+    # use for unevenly spaced Chebyshev grids (radial for example)
     def __init__(self, N) -> None:
         # Chebyshev polynomial differentiation matrix.
         #Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
@@ -35,13 +37,24 @@ class DX(Derivative):
         self.matrix = DivMatrix
 
 
-class DR(Derivative):
+class DTheta(Derivative):
+    # use for periodic, regular grid (angular for example)
+    def __init__(self, N: int, interval_length = 2*np.pi) -> None:
+        h = interval_length / N
+        arr = ((-1)**np.arange(1, N))
+        col = 0.5 * arr / np.tan(np.arange(1, N) * h/2)
+        col = np.insert(col, 0, 0)
+        # print(col)
+
+        self.matrix = toeplitz(col)
+        for i in range(N):
+            for j in range(i, N):
+                self.matrix[i, j] = -1*self.matrix[j, i]
+
+
+
+class DX(Derivative):
+    # use for nonperiodic, regular grid (CURRENTLY NOT IMPLEMENTED / NEEDED)
     def __init__(self, size: list) -> None:
         super().__init__(size)
 
-
-
-class DTheta(Derivative):
-    def __init__(self, size: list) -> None:
-        super().__init__(size)  
-         

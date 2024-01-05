@@ -7,7 +7,7 @@ class Grid:
         # allowed modes: "uni" for uniform and "cheb" for Chebyshev grid
         match mode:
             case "uni":
-                self.grid = np.array([i/(N-1) for i in range(N)], dtype=np.float64)
+                self.grid = 2*np.array([i/(N-1) for i in range(N)], dtype=np.float64) - 1
             case "cheb":
                 # Chebyshev polynomial differentiation matrix.
                 #Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
