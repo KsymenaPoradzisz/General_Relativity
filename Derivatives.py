@@ -9,6 +9,9 @@ class Derivative:
         self.matrix = np.zeros(size)
         self.matrix = self.cheb(size)[0] 
 
+    def __repr__(self) -> str:
+        return f"{np.around(self.matrix, 4)}"
+
 
 class DX(Derivative):
     def __init__(self, N) -> None:
