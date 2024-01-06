@@ -21,10 +21,8 @@ class DR(Derivative):
         #Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
         
         # x - N dimensional array of Chebyshev points
-        # D - Matrix (N)x(N) dimensional (for spectral differentiation I guess?) 
-
-        # UGLY AF - TO REWRITE
-        x = Ch.Grid(N).grid
+        # D - Matrix (N)x(N) dimensional 
+        x = Ch.Grid(N, mode='cheb').grid
         c = np.ones(N, dtype=np.float64)
         c[0] = c[-1] = 2.0
         c *= (-1.0)**np.arange(0, N)
@@ -37,19 +35,35 @@ class DR(Derivative):
         self.matrix = DivMatrix
 
 
+class DR2(Derivative):
+    # second order differentiation matrix for unevenly spaced Chebyshev grids
+    def __init__(self, N) -> None:
+        x = Ch.Grid(N).grid
+        c = np.ones(N, dtype=np.float64)
+        c[0] = c[-1] = 2.0
+        c *= (-1.0)**np.arange(0, N)
+        c = c.reshape(N, 1)
+        X = np.tile(x.reshape(N, 1), (1, N))
+        dX = X - X.T
+        DivMatrix = np.dot(c, 1.0 / c.T) / (dX + np.eye(N))
+        DivMatrix -= np.diag( DivMatrix.sum(axis=1) )
+
+        self.matrix = DivMatrix @ DivMatrix
+
+
 class DTheta(Derivative):
     # use for periodic, regular grid (angular for example)
     def __init__(self, N: int, interval_length = 2*np.pi) -> None:
         h = interval_length / N
-        arr = ((-1)**np.arange(1, N))
-        col = 0.5 * arr / np.tan(np.arange(1, N) * h/2)
-        col = np.insert(col, 0, 0)
+        arr = ((-1.0)**np.arange(1, N))
+        col = np.zeros(N)
+        col[1:] = 0.5 * arr / np.tan(np.arange(1, N) * h/2.0)
+        row = np.zeros(N)
+        row[0] = col[0]
+        row[1:] = col[N-1:0:-1]
         # print(col)
 
-        self.matrix = toeplitz(col)
-        for i in range(N):
-            for j in range(i, N):
-                self.matrix[i, j] = -1*self.matrix[j, i]
+        self.matrix = toeplitz(col, row)
 
 
 
