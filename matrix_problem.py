@@ -64,7 +64,7 @@ def main():
 #Initial condition for eta -- we need to define it, it needs 2 grids and 3 functions, but gaussians
 #are already defined upstairs, so i will use them (this is wrong because not compactified!!!)
 
-    def eta(X, U):
+    def Eta(X, U):
         NX = len(X)
         NU = len(U)
         temp = np.zeros((NX, NU))
@@ -79,7 +79,7 @@ def main():
                 dfzero = tempGauss.fprim(0.)
                 ddf = tempGauss.fbis(x)
                 ddfminus = tempGauss.fbis(-x)
-                temp[i,j] = -3/2 * (u * u - 1) / (x[i] * x[i]) *(-4. * dfzero + 2. * dfminus + 2. * df + x * ddfminus - x * ddf) 
+                temp[i,j] = -3/2 * (u * u - 1) / (x * x) *(-4. * dfzero + 2. * dfminus + 2. * df + x * ddfminus - x * ddf) 
 
         return np.reshape(temp,-1)
 
@@ -109,42 +109,36 @@ def main():
 
     IdX = np.eye(NR)
     IdU = np.eye(NU)
-
+    eta = Eta(X,U)
 #upper left matrix -> Du + Du*eta
     
-    M11 = np.empty((NR, NU))
     M11 = np.kron(IdX,DU) + np.dot(np.kron(IdX,DU), eta)
 
 #upper right matrix -> Du - Du eta - 2u/(1-u^2)
     
-    M12 = np.empty((NR, NU))
+    #print("Wymiar M12 -> ", np.shape(M12), " Oraz wymiar eta -> ", np.shape(eta), " Oraz wymiar iloczynu -> ", np.shape(np.dot(np.kron(IdX,DU),eta)), " Oraz wymiar frac -> ", np.shape(np.kron(IdX,frac)))
     M12 = np.kron(IdX,DU) - np.dot(np.kron(IdX,DU), eta) - 2*np.kron(IdX,frac) 
 
 #lower left matrix -> 1/pi sin(pi x) Dx + 3 - 1/2Pi sin(x pi)
 
-    M21 = np.empty((NR, NU))
     M21 = np.kron(sinPix @ DX, IdU) + 3 * np.kron(IdX,IdU) -1./2. * np.kron(sinPix,IdU)
 
 #lower right matrix -> 1/(2 pi) Sin(pi x) Dx eta
 
-    M22 = np.empty((NR, NU))
     M22 = 1./2.* np.dot(np.kron(sinPix @ DX, IdU), eta)
 
 #Now we should join this together: 
 
-    M = np.empty((2*NR, 2*NU)) 
     M = np.block([[M11,M12],[M21,M22]])
 
 #And now it is time for the RHS 
 
 #Upper part -> (1/pi sin(pi x) Dx + 3).K^r_u
 
-    RHS1 =  np.empty((NR,NU))
     RHS1 = np.dot(np.kron(sinPix @ Dx, IdU) + 3 * np.kron(IdX,IdU) - 1./2. * np.kron( sinPix,IdU), Kru)
 
 #Lower part -> ((1 - u^2) - 2 * u).K^r_u
     
-    RHS2 =  np.empty((NR,NU))
     RHS2 = np.dot(np.kron(IdX,sinthr) - 2 * np.kron(IdX, u), Kru)
 
 #Now we could test but i am afraid to type python3 matrixproblem.py because it will probably have a lot of errors xd
