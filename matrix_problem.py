@@ -18,8 +18,8 @@ class Gauss:
     def fbis(self, x):
         return 2*np.exp((x - self.mu)**2 / self.sigma**2) * ((2 *(x - self.mu)**2 + self.sigma**2 ) / self.sigma**4)
     
-    def ftris(self,x)
-        return 4*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 self.sigma**2) / self.sigma**6
+    def ftris(self,x):
+        return 4*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 * self.sigma**2) / self.sigma**6
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
 
 #Now let's head into the problem, define grids and matrices        
     X = np.empty((NR,))
-    U = np.empty((NTheta,))
+    U = np.empty((NU,))
 
     DX = np.empty((NR,NR))
     DU = np.empty((NU, NU))
@@ -60,8 +60,7 @@ def main():
 #And a "frac" matrix: 
     
     frac = []
-    frac = [u/(1-u*u) for u in U]
-
+    frac = [u/(1-u*u) if (1-u*u) != 0 else 1e+12 for u in U]
 #Initial condition for eta -- we need to define it, it needs 2 grids and 3 functions, but gaussians
 #are already defined upstairs, so i will use them (this is wrong because not compactified!!!)
 
@@ -113,40 +112,40 @@ def main():
 
 #upper left matrix -> Du + Du*eta
     
-    M11 = []
-    M11 = np.kron(IdX,DU) + np.kron(IdX,DU) @ eta
+    M11 = np.empty((NR, NU))
+    M11 = np.kron(IdX,DU) + np.dot(np.kron(IdX,DU), eta)
 
 #upper right matrix -> Du - Du eta - 2u/(1-u^2)
     
-    M12 = []
-    M12 = np.kron(IdX,DU) - np.kron(IdX,DU) @ eta - 2*np.kron(IdX,frac) 
+    M12 = np.empty((NR, NU))
+    M12 = np.kron(IdX,DU) - np.dot(np.kron(IdX,DU), eta) - 2*np.kron(IdX,frac) 
 
 #lower left matrix -> 1/pi sin(pi x) Dx + 3 - 1/2Pi sin(x pi)
 
-    M21 = []
+    M21 = np.empty((NR, NU))
     M21 = np.kron(sinPix @ DX, IdU) + 3 * np.kron(IdX,IdU) -1./2. * np.kron(sinPix,IdU)
 
 #lower right matrix -> 1/(2 pi) Sin(pi x) Dx eta
 
-    M22 = []
-    M22 = 1./2.* np.kron(sinPix @ DX, IdU) @ eta
+    M22 = np.empty((NR, NU))
+    M22 = 1./2.* np.dot(np.kron(sinPix @ DX, IdU), eta)
 
 #Now we should join this together: 
 
-    M = [] 
+    M = np.empty((2*NR, 2*NU)) 
     M = np.block([[M11,M12],[M21,M22]])
 
 #And now it is time for the RHS 
 
 #Upper part -> (1/pi sin(pi x) Dx + 3).K^r_u
 
-    RHS1 = []
-    RHS1 = (np.kron(sinPix @ Dx, IdU) + 3 * np.kron(IdX,IdU) - 1./2. * np.kron( sinPix,IdU)) @ Kru
+    RHS1 =  np.empty((NR,NU))
+    RHS1 = np.dot(np.kron(sinPix @ Dx, IdU) + 3 * np.kron(IdX,IdU) - 1./2. * np.kron( sinPix,IdU), Kru)
 
 #Lower part -> ((1 - u^2) - 2 * u).K^r_u
     
-    RHS2 = []
-    RHS2 = (np.kron(IdX,sinthr) - 2 * np.kron(IdX, u)) @ Kru
+    RHS2 =  np.empty((NR,NU))
+    RHS2 = np.dot(np.kron(IdX,sinthr) - 2 * np.kron(IdX, u), Kru)
 
 #Now we could test but i am afraid to type python3 matrixproblem.py because it will probably have a lot of errors xd
     
