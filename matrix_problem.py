@@ -1,8 +1,6 @@
 import Derivatives as Div
 import Cheb as Ch
 import numpy as np
-import math
-import argparse # this library is for us to parse arguments via console
 
 class Gauss:
     def __init__(self, mu, sigma):
@@ -18,39 +16,9 @@ class Gauss:
     def fbis(self, x):
         return 2*np.exp((x - self.mu)**2 / self.sigma**2) * ((2 *(x - self.mu)**2 + self.sigma**2 ) / self.sigma**4)
     
-    def ftris(self,x)
-        return 4*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 self.sigma**2) / self.sigma**6
+    def ftris(self,x):
+        return 4*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3*self.sigma**2) / self.sigma**6
 
-
-def main():
-    NR = 40
-    NU = 20
-
-#Now let's head into the problem, define grids and matrices        
-    X = np.empty((NR,))
-    U = np.empty((NTheta,))
-
-    DX = np.empty((NR,NR))
-    DU = np.empty((NU, NU))
-
-#Use Derivatives.py and cheb.py to get grid and matrices
-#Notice that we should mirror the X grid for better accuracy -- to do later
-    
-    X = Ch.Grid(NR, mode='cheb').grid
-    DX = Div.DR(NR).matrix
-    U = Ch.Grid(NU, mode='cheb').grid
-    DU = Div.DR(NU).matrix
-
-#costh is just U
-#sinth is just sqrt(1-u^2)
-
-    sinth = []
-    sinth = [(1 - u * u) ** (1 / 2) for u in U]
-
-#same for sinthsquared
-
-    sinthsqr = []
-    sinthsqr = [(1 - u * u) for u in gridT]
 
 #Initial condition for eta -- we need to define it, it needs 2 grids and 3 functions, but gaussians
 #are already defined upstairs, so i will use them
@@ -96,9 +64,39 @@ def Kru(X,U):
             temp[i,j] = 3./2. * u/(x*x*x) * (-3 * dfminus + 3 * df + x * (-8 * ddf + ddf + ddfminus + x * dddfminus - x * dddf))
     return temp
 
-#Now all we need is a matrix and RHS vectors and we can the apply a solver
 
 
+def main():
+    NR = 40
+    NU = 20
+
+#Now let's head into the problem, define grids and matrices        
+    X = np.empty((NR,))
+    U = np.empty((NU,))
+
+    DX = np.empty((NR,NR))
+    DU = np.empty((NU, NU))
+
+#Use Derivatives.py and cheb.py to get grid and matrices
+#Notice that we should mirror the X grid for better accuracy -- to do later
+    
+    X = Ch.Grid(NR, mode='cheb').grid
+    DX = Div.DR(NR).matrix
+    U = Ch.Grid(NU, mode='cheb').grid
+    DU = Div.DR(NU).matrix
+
+#costh is just U
+#sinth is just sqrt(1-u^2)
+
+    sinth = []
+    sinth = [(1 - u * u) ** (1 / 2) for u in U]
+
+#same for sinthsquared
+
+    sinthsqr = []
+    sinthsqr = [(1 - u * u) for u in gridT]
+
+#Now all we need is a matrix and RHS vectors and we can then apply a solver
 
 if __name__== "__main__":
     main()
