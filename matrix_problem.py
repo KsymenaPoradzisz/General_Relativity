@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 class Gauss:
-    def __init__(self, mu, sigma):
+    def __init__(self, sigma, mu=0):
         self.mu = mu
         self.sigma = sigma
 
@@ -64,7 +64,7 @@ def main():
     frac = [2*u/(1-u*u) if (1-u*u) != 0 else 1e+12 for u in U]
     frac = np.diag(frac)
 #Initial condition for eta -- we need to define it, it needs 2 grids and 3 functions, but gaussians
-#are already defined upstairs, so i will use them (this is wrong because not compactified!!!)
+#are already defined above, so i will use them (this is wrong because not compactified!!!)
 
     def Eta(X, U):
         NX = len(X)
@@ -73,9 +73,9 @@ def main():
         for i in range(NX):
             for j in range(NU):
                 u = U[j]
-                x = X[i]
-                r = 2./np.pi * np.tan(np.pi * x / 2)
-                tempGauss = Gauss(0,0.1) #example of gauss parameters
+                r = X[i]
+               # r = 2./np.pi * np.tan(np.pi * x / 2)
+                tempGauss = Gauss(0.1) #example of gauss parameters
                 f = tempGauss.f(r)
                 df = tempGauss.fprim(r)
                 dfminus = tempGauss.fprim(-r)
@@ -104,9 +104,9 @@ def main():
         for i in range(NX):
              for j in range(NU):
                 u = U[j]
-                x = X[i]
-                r = 2./np.pi * np.tan(np.pi * x / 2)
-                tempGauss = Gauss(0,0.1) #example of gauss parameters
+                r = X[i]
+                #r = 2./np.pi * np.tan(np.pi * x / 2)
+                tempGauss = Gauss(0.1) #example of gauss parameters
                 df = tempGauss.fprim(r)
                 dfminus = tempGauss.fprim(-r)
                 ddf = tempGauss.fbis(r)
