@@ -9,12 +9,26 @@ class Derivative:
     def __repr__(self) -> str:
         return f"{np.around(self.matrix, 4)}"
 
+    def blockSymmetrize(self, mode) -> list[list]:
+        dim = self.matrix.shape[0]
+        blockLU, blockRU = self.matrix[:dim//2, :dim//2], self.matrix[:dim//2, dim//2:]
+
+        diagId = np.identity(dim)
+        antiDiagId = np.kron(np.array([[0, 1], [1, 0]]), np.identity(dim//2))
+        match mode:
+            case 'L':
+                return np.kron(blockLU, diagId) + np.kron(blockRU, antiDiagId)
+            case 'R':
+                return np.kron(diagId, blockLU) + np.kron(antiDiagId, blockRU)
+            case _:
+                raise ValueError("'mode' should be 'L' or 'R'!")
+
 
 class DR(Derivative):
     # use for unevenly spaced Chebyshev grids (radial for example)
     def __init__(self, N) -> None:
         # Chebyshev polynomial differentiation matrix.
-        #Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
+        # Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
         
         # x - N dimensional array of Chebyshev points
         # D - Matrix (N)x(N) dimensional 
@@ -41,6 +55,8 @@ class DR2(Derivative):
 class DTheta(Derivative):
     # use for periodic, regular grid (angular for example)
     def __init__(self, N: int) -> None:
+        # Differentiation matrix for uniform grid
+        # Ref.: Trefethen's 'Spectral Methods in MATLAB' book.
         h = 2*np.pi / N
         arr = ((-1.0)**np.arange(1, N))
         col = np.zeros(N)
@@ -51,13 +67,15 @@ class DTheta(Derivative):
 
         self.matrix = toeplitz(col, row)
 
+
 class DTheta2(Derivative):
     # use for periodic, regular grid (angular for example)
     def __init__(self, N: int) -> None:
         dTheta = DTheta(N).matrix
         self.matrix = dTheta @ dTheta
 
+
 class DX(Derivative):
-    # use for nonperiodic, regular grid (CURRENTLY NOT IMPLEMENTED / NEEDED)
+    # use for nonperiodic, regular grid (currently not needed)
     pass
 

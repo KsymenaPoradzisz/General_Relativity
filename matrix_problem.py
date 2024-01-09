@@ -26,7 +26,7 @@ class Gauss:
 def Eta(X: list, U: list):
     NX = len(X)
     NU = len(U)
-    temp = np.zeros((NX, NU))
+    eta = np.zeros((NX, NU))
     for i in range(NX):
         for j in range(NU):
             u = U[j]
@@ -47,9 +47,9 @@ def Eta(X: list, U: list):
             # print("f = ", f)
             # print("ddf = ", ddf)
             # print("ddfminus = ", ddfminus)
-            temp[j, i] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) 
+            eta[j, i] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) 
 
-    return np.reshape(temp,-1)
+    return np.reshape(eta, -1)
 
 
 #initial condition for K^R_theta (NOT COMPACTIFIED but i don't know how to do it if I don't know L!)
