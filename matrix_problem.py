@@ -4,21 +4,21 @@ import numpy as np
 import math
 
 class Gauss:
-    def __init__(self, sigma: float, mu: float = 0):
+    def __init__(self, sigma: float, mu: float = 0, epsilon: float = 1):
         self.mu = mu
         self.sigma = sigma
-
+        self.epsilon = epsilon
     def f(self, x):
-        return np.exp((x - self.mu)**2 / self.sigma**2)
+        return self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2)
     
     def fprim(self, x):
-        return np.exp((x - self.mu)**2 / self.sigma**2) * (2 * (x - self.mu)) / self.sigma**2
+        return self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * (2 * (x - self.mu)) / self.sigma**2
     
     def fbis(self, x):
-        return 2*np.exp((x - self.mu)**2 / self.sigma**2) * ((2 *(x - self.mu)**2 + self.sigma**2 ) / self.sigma**4)
+        return 2*self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * ((2 *(x - self.mu)**2 + self.sigma**2 ) / self.sigma**4)
     
     def ftris(self, x):
-        return 4*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 * self.sigma**2) / self.sigma**6
+        return 4*self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 * self.sigma**2) / self.sigma**6
 
 #Initial condition for eta -- we need to define it, it needs 2 grids and 3 functions, but gaussians
 #are already defined above, so i will use them (this is wrong because not compactified!!!)
@@ -26,13 +26,13 @@ class Gauss:
 def Eta(X: list, U: list):
     NX = len(X)
     NU = len(U)
-    eta = np.zeros((NX, NU))
+    eta = np.zeros((NU, NX))
     for i in range(NX):
         for j in range(NU):
             u = U[j]
             r = X[i]
             # r = 2./np.pi * np.tan(np.pi * x / 2)
-            tempGauss = Gauss(sigma = 0.1, mu = 0) #example of gauss parameters
+            tempGauss = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
             f = tempGauss.f(r)
             df = tempGauss.fprim(r)
             dfminus = tempGauss.fprim(-r)
@@ -47,23 +47,22 @@ def Eta(X: list, U: list):
             # print("f = ", f)
             # print("ddf = ", ddf)
             # print("ddfminus = ", ddfminus)
-            eta[j, i] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) 
+            eta[j, i] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) if r != 0 else 1e+12 
 
     return np.reshape(eta, -1)
 
 
-#initial condition for K^R_theta (NOT COMPACTIFIED but i don't know how to do it if I don't know L!)
-
 def Kru(X: list, U: list):
     NX = len(X)
     NU = len(U)
-    temp = np.zeros((NX,NU))
+    temp = np.zeros((NU,NX))
     for i in range(NX):
         for j in range(NU):
             u = U[j]
             r = X[i]
             #r = 2./np.pi * np.tan(np.pi * x / 2)
-            tempGauss = Gauss(sigma = 0.1, mu = 0) #example of gauss parameters
+            tempGauss = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
+            f = tempGauss.fprim(r)
             df = tempGauss.fprim(r)
             dfminus = tempGauss.fprim(-r)
             ddf = tempGauss.fbis(r)
@@ -71,12 +70,12 @@ def Kru(X: list, U: list):
             ddfminus = tempGauss.fbis(-r)
             dddf = tempGauss.ftris(r)
             dddfminus = tempGauss.ftris(-r)
-            temp[j, i] = 3./2. * u/(r*r*r) * (-3 * dfminus + 3 * df + r * (-8 * ddf + ddf + ddfminus + r * dddfminus - r * dddf))
+            temp[j, i] = 3./2. * u/(r*r*r) * (-3 * dfminus + 3 * df + r * (-8 * ddf + ddf + ddfminus + r * dddfminus - r * dddf)) if r != 0 else 1e+12 
     return np.reshape(temp, -1)
 
 
 def main():
-    NR = 6
+    NR = 5
     NU = 6
 
     # Now let's head into the problem, define grids and matrices        
@@ -108,36 +107,43 @@ def main():
 
     # upper left matrix -> Du + Du*eta
     M11 = np.kron(DU,IdX) + np.dot(np.kron(DU,IdX), eta)
-    print("M11 ", np.shape(M11))
 
     # upper right matrix -> Du - Du eta - 2u/(1-u^2)
-    # print("Wymiar M12 -> ", np.shape(M12), " Oraz wymiar eta -> ", np.shape(eta), " Oraz wymiar iloczynu -> ", np.shape(np.dot(np.kron(IdX,DU),eta)), " Oraz wymiar frac -> ", np.shape(np.kron(IdX,frac)))
-    M12 = np.kron(DU, IdX) - np.dot(np.kron(DU, IdX), eta) - 2*np.kron(frac, IdX) # tu chyba error
-    print("M12 ", np.shape(M12))
+    M12 = np.kron(DU, IdX) - np.dot(np.kron(DU, IdX), eta) - 2*np.kron(frac, IdX) 
 
     # lower left matrix -> 1/pi sin(pi x) Dx + 3 - 1/2Pi sin(x pi)
     M21 = np.kron(IdU, sinPix @ DX) + 3*np.kron(IdU,IdX) - 1./2.* np.kron(IdU, sinPix)
-    print("M21 ", np.shape(M21))
 
     # lower right matrix -> 1/(2 pi) Sin(pi x) Dx eta
     M22 = 1./2.* np.diag(np.dot(np.kron(IdU, sinPix @ DX), eta))
-    print("M22 ", np.shape(M22))
 
     # Now we should join this together: 
     M = np.block([[M11,M12],[M21,M22]])
-
+    
     # And now it is time for the RHS 
     # Upper part -> (1/pi sin(pi x) Dx + 3).K^r_u
     # RHS1 = np.dot(np.kron(IdU @ sinPix, DX) + 3 * np.kron(IdU,IdX) - 1./2. * np.kron(IdU, sinPix), Kru(X,U))
-    RHS1 = np.dot(np.kron(IdU @ sinPix, DX) + 3 * np.kron(IdU,IdX), Kru(X,U))
+    RHS1 = np.dot(np.kron(IdU,sinPix @ DX) + 3 * np.kron(IdU,IdX), Kru(X,U))
 
     # Lower part -> ((1 - u^2) - 2 * u).K^r_u
     print("Kru shape: ", Kru(X,U).shape)
     print("rest: ",(np.kron(sinthsqr, IdX) - 2 * np.kron(np.diag(U), IdX)).shape)
     RHS2 = np.dot(np.kron(sinthsqr, IdX) - 2 * np.kron(np.diag(U), IdX), Kru(X, U))
-
-
-    # Now we could test but i am afraid to type python3 matrixproblem.py because it will probably have a lot of errors xd
     
+    #Total R = [R1, R2]:
+    R = np.zeros(2*(NR*NU,))
+    R = np.concatenate((RHS1,RHS2))
+
+    # Now we need to solve M.X = R
+
+    X = np.zeros(2*(NR*NU,))
+    X = np.linalg.solve(M,R)
+
+    print("Rownanie: A = ", M) 
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Wyraz wolny: B = ", R) 
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("Rozwiazanie: X = ", X) 
+
 if __name__== "__main__":
     main()
