@@ -32,4 +32,11 @@ class Eta(Data):
     # for the sake of numerical stability we choose \Eta/R
     pass
 
-    
+class DiagId:
+    def __init__(self, diagN: int) -> None:
+        self.matrix = np.identity(diagN)
+
+class AntiDiagId:
+    def __init__(self, diagN: int) -> None:
+        # diagN should be even for matrix to be symmetric!
+        self.matrix = np.kron(np.array([[0, 1], [1, 0]]), np.identity(diagN//2))

@@ -3,7 +3,7 @@ import numpy as np
 
 
 class PolarPlotter:
-    def plot(self, rArray: list, thetaArray: list, zArray: list, colormap: str = "viridis"):
+    def plot(self, rArray: list, thetaArray: list, zArray: list, colormap: str = "viridis", zrange: tuple = (None, None)):
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
 
@@ -17,7 +17,7 @@ class PolarPlotter:
         # Plot the surface.
         fig.set_size_inches(7, 7)
         ax.plot_surface(X, Y, Z, cmap=colormap)
-        
+        ax.axes.set_zlim3d(bottom=zrange[0], top=zrange[1])
         plt.show()
 
 

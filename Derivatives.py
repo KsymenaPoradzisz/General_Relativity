@@ -1,5 +1,6 @@
 import numpy as np
 import Cheb as Ch
+import Data
 from scipy.linalg import toeplitz
 
 # storage for derivative matrices
@@ -8,21 +9,6 @@ class Derivative:
 
     def __repr__(self) -> str:
         return f"{np.around(self.matrix, 4)}"
-
-    def blockSymmetrize(self, divPosition: str, sizeId: int) -> list[list]:
-        # divPosition refers to the position of multiplied matrix - it is either matrix x Id ('L' mode) or Id x matrix ('R' mode)
-        dim = self.matrix.shape[0]
-        blockLU, blockRU = self.matrix[:dim//2, :dim//2], self.matrix[:dim//2, dim//2:]
-
-        diagId = np.identity(sizeId)
-        antiDiagId = np.kron(np.array([[0, 1], [1, 0]]), np.identity(sizeId//2))
-        match divPosition:
-            case 'L':
-                return np.kron(blockLU, diagId) + np.kron(blockRU, antiDiagId)
-            case 'R':
-                return np.kron(diagId, blockLU) + np.kron(antiDiagId, blockRU)
-            case _:
-                raise ValueError("'divPosition' should be 'L' or 'R'!")
 
 
 class DR(Derivative):
@@ -80,3 +66,20 @@ class DX(Derivative):
     # use for nonperiodic, regular grid (currently not needed)
     pass
 
+
+
+def blockSymmetrize(matrix, divPosition: str, sizeId: int) -> list[list]:
+    # divPosition refers to the position of multiplied matrix - it is either matrix x Id ('L' mode) or Id x matrix ('R' mode)
+    # sizeId is an integer size of target identity matrix
+    dim = matrix.shape[0]
+    blockLU, blockRU = matrix[:dim//2, :dim//2], matrix[:dim//2, dim//2:]
+
+    diagId = Data.DiagId(sizeId).matrix
+    antiDiagId = Data.AntiDiagId(sizeId).matrix
+    match divPosition:
+        case 'L':
+            return np.kron(blockLU, diagId) + np.kron(blockRU, antiDiagId)
+        case 'R':
+            return np.kron(diagId, blockLU) + np.kron(antiDiagId, blockRU)
+        case _:
+            raise ValueError("'divPosition' should be 'L' or 'R'!")
