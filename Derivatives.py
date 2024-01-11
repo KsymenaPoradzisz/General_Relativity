@@ -9,19 +9,20 @@ class Derivative:
     def __repr__(self) -> str:
         return f"{np.around(self.matrix, 4)}"
 
-    def blockSymmetrize(self, mode) -> list[list]:
+    def blockSymmetrize(self, divPosition: str, sizeId: int) -> list[list]:
+        # divPosition refers to the position of multiplied matrix - it is either matrix x Id ('L' mode) or Id x matrix ('R' mode)
         dim = self.matrix.shape[0]
         blockLU, blockRU = self.matrix[:dim//2, :dim//2], self.matrix[:dim//2, dim//2:]
 
-        diagId = np.identity(dim)
-        antiDiagId = np.kron(np.array([[0, 1], [1, 0]]), np.identity(dim//2))
-        match mode:
+        diagId = np.identity(sizeId)
+        antiDiagId = np.kron(np.array([[0, 1], [1, 0]]), np.identity(sizeId//2))
+        match divPosition:
             case 'L':
                 return np.kron(blockLU, diagId) + np.kron(blockRU, antiDiagId)
             case 'R':
                 return np.kron(diagId, blockLU) + np.kron(antiDiagId, blockRU)
             case _:
-                raise ValueError("'mode' should be 'L' or 'R'!")
+                raise ValueError("'divPosition' should be 'L' or 'R'!")
 
 
 class DR(Derivative):
