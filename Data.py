@@ -2,13 +2,14 @@ import numpy as np
 import numpy.typing as npt
 import Cheb as Ch
 import Derivatives as Div
-import math
+
 
 class Gauss:
     def __init__(self, sigma: float, mu: float = 0, epsilon: float = 1):
         self.mu = mu
         self.sigma = sigma
         self.epsilon = epsilon
+
     def f(self, x):
         return self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2)
     
@@ -20,47 +21,70 @@ class Gauss:
     
     def ftris(self, x):
         return 4*self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 * self.sigma**2) / self.sigma**6
+
+
 class Data: 
-    def __init__(self, X: list, U: list) -> None:
-        self.NX = len(X)
-        self.NU = len(U)
+    pass
+
+
 class Eta(Data):
      # for the sake of numerical stability we choose \Eta/R
-   # X - x grid; U - u grid
+     # X - spatial grid; U - angular grid
     def __init__(self, X: list, U: list) -> None:
-        super(Eta, self).__init__(X, U)
-        self.eta = np.zeros((self.NX, self.NU))
-    
-    def initialize(self, mode = "gauss"):
-        match mode:
-            case "gauss":
-                for i in range(self.NX):
-                    for j in range(self.NU):
-                        u = U[j]
-                        r = X[i]
-                        # r = 2./np.pi * np.tan(np.pi * x / 2)
-                        tempGauss = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
-                        f = tempGauss.f(r)
-                        df = tempGauss.fprim(r)
-                        dfminus = tempGauss.fprim(-r)
-                        dfzero = tempGauss.fprim(0.)
-                        ddf = tempGauss.fbis(r)
-                        ddfminus = tempGauss.fbis(-r)
-                        self.eta[j, i] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) if r != 0 else 1e+12 
+        self.eta = self.gaussInit(X, U)
 
-                self.eta = np.reshape(self.eta, -1)
-            case _:
-                raise ValueError("There is no mode you chose. Please choose one existing")   
+    def gaussInit(self, X: list, U: list) -> None:
+        NX, NU = len(X), len(U)
+        eta = np.zeros((NX, NU))
+        for i in range(NX):
+            for j in range(NU):
+                u, r = U[j], X[i]
+                gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
+                f = gaussian.f(r)
+                df = gaussian.fprim(r)
+                dfminus = gaussian.fprim(-r)
+                dfzero = gaussian.fprim(0.)
+                ddf = gaussian.fbis(r)
+                ddfminus = gaussian.fbis(-r)
+                eta[i, j] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) if r != 0 else 1e+12 
 
-class BetaR(Data):
-    # for the sake of numerical stability we choose \BetaR/R
-    def dr(self) -> npt.NDArray:
-        pass
+        return np.reshape(eta, -1)
+
+
+class Kru(Data):
+    # X - spatial grid; U - angular grid
+    def __init__(self, X: list, U: list) -> None:
+        self.kru = self.gaussInit(X, U)
+
+    def gaussInit(self, X: list, U: list) -> None:
+        NX, NU = len(X), len(U)
+        kru = np.zeros((NX,NU))
+        for i in range(NX):
+            for j in range(NU):
+                u, r = U[j], X[i]
+                gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
+                f = gaussian.fprim(r)
+                df = gaussian.fprim(r)
+                dfminus = gaussian.fprim(-r)
+                ddf = gaussian.fbis(r)
+                ddfzero = gaussian.fbis(0)
+                ddfminus = gaussian.fbis(-r)
+                dddf = gaussian.ftris(r)
+                dddfminus = gaussian.ftris(-r)
+                kru[i, j] = 3./2. * u/(r*r*r) * (-3 * dfminus + 3 * df + r * (-8 * ddf + ddf + ddfminus + r * dddfminus - r * dddf)) if r != 0 else 1e+12 
+        
+        return np.reshape(kru, -1)
 
 
 class KRTheta(Data):
     # for the sake of numerical stability we choose KRTheta/R
     pass
+
+
+class BetaR(Data):
+    # for the sake of numerical stability we choose \BetaR/R
+    def dr(self) -> npt.NDArray:
+        pass
 
 
 class BetaU(Data):
