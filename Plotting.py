@@ -7,6 +7,10 @@ class PolarPlotter:
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
 
+        # check whether thetaArray is Chebyshev or Uniform grid
+        if np.max(thetaArray) < 2:
+            thetaArray *= np.pi
+            
         # Create the mesh in polar coordinates and reshape Z
         R, P = np.meshgrid(rArray, thetaArray)
         Z = zArray.reshape((len(rArray), len(thetaArray))).T

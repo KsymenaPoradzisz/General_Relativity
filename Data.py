@@ -36,10 +36,10 @@ class Eta(Data):
     def gaussInit(self, X: list, U: list) -> None:
         NX, NU = len(X), len(U)
         eta = np.zeros((NX, NU))
+        gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
         for i in range(NX):
             for j in range(NU):
                 u, r = U[j], X[i]
-                gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
                 f = gaussian.f(r)
                 df = gaussian.fprim(r)
                 dfminus = gaussian.fprim(-r)
@@ -59,10 +59,10 @@ class Kru(Data):
     def gaussInit(self, X: list, U: list) -> None:
         NX, NU = len(X), len(U)
         kru = np.zeros((NX,NU))
+        gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
         for i in range(NX):
             for j in range(NU):
                 u, r = U[j], X[i]
-                gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
                 f = gaussian.fprim(r)
                 df = gaussian.fprim(r)
                 dfminus = gaussian.fprim(-r)
