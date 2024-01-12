@@ -12,8 +12,8 @@ def main():
     X = Ch.Grid(NR, mode='cheb').grid[1:NR//2]
     U = Ch.Grid(NU, mode='cheb').grid
     DX = Div.DR(NR).matrix[1:-1, 1:-1]
-    DX = Div.blockSymmetrize(DX, "L", NU)
-    DU = Div.DR(NU).matrix[1:-1, 1:-1]
+    # DX = Div.blockSymmetrize(DX, "L", NU)
+    DU = Div.DR(NU).matrix
 
     # costh is just U, sinth is just sqrt(1-u^2)
     sinth = [np.sqrt(1 - u*u) for u in U]
@@ -23,7 +23,9 @@ def main():
 
     # We also need X matrix, defined as 1/Pi Sin(Pi X)
     sinPix = np.diag([(1/np.pi) * np.sin(np.pi * x) for x in X])
-    
+    sinPixDX = np.kron(np.eye(2), sinPix) @ DX
+    sinPixDX = Div.blockSymmetrize(sinPixDX, 'L', NU)
+
     # And a "frac" matrix: 
     frac = np.diag([2*u/(1-u*u) if (1-u*u) != 0 else 1e+12 for u in U])
 
@@ -34,16 +36,16 @@ def main():
     kru = Data.Kru(X, U).kru
 
     # upper left block -> Du + Du*eta
-    M11 = np.kron(IdX, DU) + np.dot(np.kron(IdX, DU), eta)
+    M11 = np.kron(IdX, DU) + np.dot(np.kron(IdX, DU), np.diag(eta))
 
     # upper right block -> Du - Du eta - 2u/(1-u^2)
-    M12 = np.kron(DU, IdX) - np.dot(np.kron(DU, IdX), eta) - 2*np.kron(frac, IdX) 
+    M12 = np.kron(IdX, DU) - np.dot(np.kron(IdX, DU), eta) - 2*np.kron(IdX, frac) 
 
     # lower left block -> 1/pi sin(pi x) Dx + 3 - 1/2Pi sin(x pi)
-    M21 = np.kron(IdU, sinPix @ DX) + 3*np.kron(IdU,IdX) - 1./2.* np.kron(IdU, sinPix)
+    M21 = sinPixDX + 3*np.kron(IdX, IdU) - 1./2.* np.kron(sinPix, IdU)
 
     # lower right block -> 1/(2 pi) Sin(pi x) Dx eta
-    M22 = 1./2.* np.diag(np.dot(np.kron(IdU, sinPix @ DX), eta))
+    M22 = 1./2.* np.diag(sinPixDX @ eta)
 
     # Now we should join this together: 
     operator = np.block([[M11,M12],[M21,M22]])
@@ -51,12 +53,12 @@ def main():
     # And now it is time for the RHS 
     # Upper part -> (1/pi sin(pi x) Dx + 3).K^r_u
     # RHS1 = np.dot(np.kron(IdU @ sinPix, DX) + 3 * np.kron(IdU,IdX) - 1./2. * np.kron(IdU, sinPix), Kru(X,U))
-    RHS1 = np.dot(np.kron(IdU,sinPix @ DX) + 3 * np.kron(IdU,IdX), kru)
+    RHS1 = np.dot(sinPixDX + 3 * np.kron(IdX, IdU) - 1./2. * np.kron(sinPix, IdU), kru)
 
     # Lower part -> ((1 - u^2) - 2 * u).K^r_u
     print("Kru shape: ", kru.shape)
-    print("rest: ",(np.kron(sinthsqr, IdX) - 2 * np.kron(np.diag(U), IdX)).shape)
-    RHS2 = np.dot(np.kron(sinthsqr, IdX) - 2 * np.kron(np.diag(U), IdX), kru)
+    print("rest: ",(np.kron(IdX, sinthsqr) - 2 * np.kron(IdX, np.diag(U))).shape)
+    RHS2 = np.dot(np.kron(IdX, sinthsqr) - 2 * np.kron(IdX, np.diag(U)), kru)
     
     #Total R = [R1, R2]:
     source = np.concatenate((RHS1, RHS2))
@@ -64,7 +66,7 @@ def main():
     # Now we need to solve linear matrix equation 
     x = np.linalg.solve(operator, source)
 
-    print("Rownanie: A = ", operator) 
+    # print("Rownanie: A = ", operator) 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print("Wyraz wolny: B = ", source) 
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")

@@ -76,6 +76,7 @@ def blockSymmetrize(matrix, divPosition: str, sizeId: int) -> list[list]:
 
     diagId = Data.DiagId(sizeId).matrix
     antiDiagId = Data.AntiDiagId(sizeId).matrix
+
     match divPosition:
         case 'L':
             return np.kron(blockLU, diagId) + np.kron(blockRU, antiDiagId)
