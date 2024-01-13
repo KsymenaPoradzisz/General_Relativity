@@ -30,6 +30,12 @@ def main():
     Ufrac = np.diag([2*u/(1-u*u) if (1-u*u) != 0 else 1e+12 for u in U])
 
     # Now all we need is a matrix and RHS vectors and we can the apply a solver, assuming we work in (X, U) space, if it does not work one can change i<->j in Kru and eta 
+   
+#Compactified variable is inside tan(pi X/2) * L, so we need to include that in gauss
+    
+    L = 2/np.pi
+    #X = [L * np.tan(x * np.pi/2) if (x != 0 and x != 1) else (1e+5 if x == 0 else -1e+5) for x in X]
+    X = np.array(X)
     IDx = np.eye(dimR)
     IDu = np.eye(NU)
     eta = Data.Eta(X, U).eta

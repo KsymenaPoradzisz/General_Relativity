@@ -5,23 +5,57 @@ import Derivatives as Div
 
 
 class Gauss:
-    def __init__(self, sigma: float, mu: float = 0, epsilon: float = 1):
+    def __init__(self, sigma: float, mu: float = 0, epsilon: float = 1, L: float = 2/np.pi):
         self.mu = mu
         self.sigma = sigma
         self.epsilon = epsilon
+        self.L = L
+    #I define tg(x) and cos(x) because they appear in the derivatives
+
+    def tg(x):
+     #Define compactified variable, L = 2/Pi
+        if(x != 0 and x != 1):
+            return np.tan(np.pi * x/2.) * self.L
+        elif(x == 0):
+            return  1e+6
+        else:
+            return -1e+6
+        return tg
+
+    # Define a derivative of such variable, this is Sec^2 * Pi/2 * L, so just Sec^2 but we can have 
+   
+   # Different values of L, so i leave that
+    def secL(x):
+        if(x != 1./2.):
+            return np.pi/2. * 1/(np.cos(np.pi*x/2.))**2 * self.L
+        else: 
+            return 1e+6
+    #This is the same secans, but without L, because it is convinient for second derivative
+    def sec(x):
+        if(x != 1./2.):
+            return 1/(np.cos(np.pi*x/2.))**2
+        else: 
+            return 1e+6
+
+
+   #Now define the gauss function up to 3rd derivative
 
     def f(self, x):
-        return self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2)
+        return self.epsilon*np.exp((self.tg(x) - self.mu)**2 / self.sigma**2)
     
     def fprim(self, x):
-        return self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * (2 * (x - self.mu)) / self.sigma**2
+        return self.f(x) * (-2 * (self.tg(x) - self.mu)) * self.secL(x)
+
+    #Unfortunatelly, other derivatives are really bad :( I write them expanded, so it is easier to check
     
     def fbis(self, x):
-        return 2*self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * ((2 *(x - self.mu)**2 + self.sigma**2 ) / self.sigma**4)
-    
-    def ftris(self, x):
-        return 4*self.epsilon*np.exp((x - self.mu)**2 / self.sigma**2) * (x - self.mu) * (2 * (x - self.mu)**2 + 3 * self.sigma**2) / self.sigma**6
+        tempe = self.f(x) * self.L * self.L * np.pi**2/self.sigma**2
+        return  (-self.sec(x)**2/2. + (self.mu*self.sec(x)/self.sigma)**2 + self.mu * self.tg(x)/L * self.sec(x)/L - 2 * self.tan(x) * self.mu * self.sec(x)**2/self.sigma**2 - self.sec(x) * (self.tg(x)/self.L)**2 + self.tg(x)**2 * self.sec(x)**2/self.sigma**2) * tempe
 
+
+    def ftris(self, x):
+        tempe = self.f(x) * self.L * np.pi**3/self.sigma**2
+        return ( 1./2. * self.mu * self.sec(x)**2 + (self.L/self.sigma**2)**2 * (self.mu * self.sec(x))**3 - 3./2. * (self.L/self.sigma)**2 * self.sec(x)**3 - 2*self.tg(x) * self.sec(x)**2 + 3 * self.tg(x) * (self.sec(x)/self.sigma)**2 - 3 * self.tg(x) * self.L**2 * self.mu**2 /self.sigma**4 * self.sec(x)**3 + 3*self.tg(x) * (self.L/self.sigma)**2 * self.sec(x)**3 /2. + self.mu * self.sec(x) * self.tg(x)/self.L**2 - 6 * (self.tg(x)/self.sigma)**2 * self.sec(x)**2 + 3 * self.mu * self.tg(x)**2 * self.L**2 /self.sigma**4 * self.sec(x)**3 - self.tg(x)**3 * (self.sec(X)/self.L)**2 +3 * self.tg(x)**3 * (self.sec(x)/self.sigma)*2 - self.tg(x)**3 * self.L**2/self.sigma**4 * self.sec(x)**3) * tempe 
 
 class Data: 
     pass
