@@ -55,7 +55,45 @@ class Gauss:
 
     def ftris(self, x):
         tempe = self.f(x) * self.L * np.pi**3/self.sigma**2
-        return ( 1./2. * self.mu * self.sec(x)**2 + (self.L/self.sigma**2)**2 * (self.mu * self.sec(x))**3 - 3./2. * (self.L/self.sigma)**2 * self.sec(x)**3 - 2*self.tg(x) * self.sec(x)**2 + 3 * self.tg(x) * (self.sec(x)/self.sigma)**2 - 3 * self.tg(x) * self.L**2 * self.mu**2 /self.sigma**4 * self.sec(x)**3 + 3*self.tg(x) * (self.L/self.sigma)**2 * self.sec(x)**3 /2. + self.mu * self.sec(x) * self.tg(x)/self.L**2 - 6 * (self.tg(x)/self.sigma)**2 * self.sec(x)**2 + 3 * self.mu * self.tg(x)**2 * self.L**2 /self.sigma**4 * self.sec(x)**3 - self.tg(x)**3 * (self.sec(X)/self.L)**2 +3 * self.tg(x)**3 * (self.sec(x)/self.sigma)*2 - self.tg(x)**3 * self.L**2/self.sigma**4 * self.sec(x)**3) * tempe 
+        return ( 1./2. * self.mu * self.sec(x)**2 + (
+            self.L/self.sigma**2)**2 * (self.mu * self.sec(x))**3 -
+            3./2. * (self.L/self.sigma)**2 * self.sec(x)**3 -
+            2*self.tg(x) * self.sec(x)**2 + 3 * self.tg(x) * (self.sec(x)/self.sigma)**2 -
+            3 * self.tg(x) * self.L**2 * self.mu**2 /self.sigma**4 * self.sec(x)**3 +
+            3*self.tg(x) * (self.L/self.sigma)**2 * self.sec(x)**3 /2. +
+            self.mu * self.sec(x) * self.tg(x)/self.L**2 -
+            6 * (self.tg(x)/self.sigma)**2 * self.sec(x)**2 +
+            3 * self.mu * self.tg(x)**2 * self.L**2 /self.sigma**4 * self.sec(x)**3 -
+            self.tg(x)**3 * (self.sec(X)/self.L)**2 +3 * self.tg(x)**3 * (self.sec(x)/self.sigma)*2 -
+            self.tg(x)**3 * self.L**2/self.sigma**4 * self.sec(x)**3) * tempe 
+
+#IT TURNS OUT YOU ALSO NEED 4TH DERIVATIVE :) 
+
+    def ftetra(self,x):
+        tempe = (self.f(x) * self.L**2 * np.pi ** 4)/self.sigma**2 
+        return (-self.sec(x)**3 + (2 * self.mu**2 * self.sec(x)**3) / self.sigma**2 + (
+            self.L**2 * self.mu**4 * self.sec(x)**4) / self.sigma**6 - (
+            3 * self.L**2 * self.mu**2 * self.sec(x)**4) / self.sigma**4 + (
+            3 * self.L**2 * self.sec(x)**4) / (4 * self.sigma**2) + (
+            2 * self.mu * self.tg(x) * self.sec(x)**4 / self.L**2) + (
+            6  * self.mu**3 * self.sec(x)**3 * self.tg(x)) / self.sigma**4 - (
+            13 * self.mu * self.sec(x)**3 * self.tg(x)) / self.sigma**2 - (
+            4 * self.L**2 * self.mu**3 * self.sec(x)**4 * self.tg(x)) / self.sigma**6 + (
+            6 * self.L**2 * self.mu * self.sec(x)**4 * self.tg(x)) / self.sigma**4 - 
+            11 / 2 * self.sec(x)**4 * self.tg(x)**2/ + (
+            7 * self.mu**2 * self.sec(x)**2 * self.tg(x)**2) / (self.sigma*self.L)**2 - (
+            18 * self.mu**2 * self.sec(x)**3 * self.tg(x)**2) / self.sigma**4 + (
+            11 * self.sec(x)**3 * self.tg(x)**2) / self.sigma**2 + (
+            6 * self.L**2 * self.mu**2 * self.sec(x)**4 * self.tg(x)**2) / self.sigma**6 - (
+            3 * self.L**2 * self.sec(x)**4 * self.tg(x)**2) / self.sigma**4 + (
+            self.mu * self.sec(x) * self.tg(x)**3) / self.L**4 - (
+            14  * self.mu * self.sec(x)**2 * self.tg(x)**3) / (self.L * self.sigma**2) + (
+            18  * self.mu * self.sec(x)**3 * self.tg(x)**3) / self.sigma**4 - (
+            4 * self.L**2 * self.mu * self.sec(x)**4 * self.tg(x)**3) / self.sigma**6 - 
+            self.sec(x) * self.tg(x)**4 + (
+            7 / self.L**2 * self.sec(x)**2 * self.tg(x)**4) / self.sigma**2 - (
+            6 * self.sec(x)**3 * self.tg(x)**4) / self.sigma**4 + (
+            self.L**2 * self.sec(x)**4 * self.tg(x)**4) / self.sigma**6) * tempe
 
 class Data: 
     pass
