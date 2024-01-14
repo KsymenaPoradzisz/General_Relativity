@@ -24,7 +24,7 @@ def main():
     # We also need X matrix, defined as 1/Pi Sin(Pi X)
     sinPix = np.diag([(1/np.pi) * np.sin(np.pi * x) for x in X])
     sinPixDX = np.kron(np.eye(2), sinPix) @ DX
-    sinPixDX = Div.blockSymmetrize(sinPixDX, 'L', NU)
+    sinPixDX = Div.blockSymmetrize(sinPixDX, NU)
 
     # And a "frac" matrix: 
     Ufrac = np.diag([2*u/(1-u*u) if (1-u*u) != 0 else 1e+12 for u in U])
@@ -53,7 +53,7 @@ def main():
     # lower right block -> 1/(2 pi) Sin(pi x) * (Dx eta)
     M22 = 1./2.* np.diag(sinPixDX @ eta)
 
-    # a = Div.blockSymmetrize(DX, "L", NU)      # check whether M22 formula is in agreement in more rigorous approach
+    # a = Div.blockSymmetrize(DX, NU)      # check whether M22 formula is in agreement in more rigorous approach
     # b = (a @ eta)
     # c = np.kron(sinPix, np.eye(NU))
     # M22Prime = 1/2 * np.diag(c @ b)
