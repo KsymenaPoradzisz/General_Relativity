@@ -124,12 +124,12 @@ class Eta(Data):
     def init_cond(self, mode = "gauss"):
         match mode:
             case "gauss":
+                tempGauss = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
                 for i in range(self.NX):
                     for j in range(self.NU):
                         u = self.U[j]
                         r = self.X[i]
                         # r = 2./np.pi * np.tan(np.pi * x / 2)
-                        tempGauss = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
                         f = tempGauss.f(r)
                         df = tempGauss.fprim(r)
                         dfminus = tempGauss.fprim(-r)
