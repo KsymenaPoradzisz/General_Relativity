@@ -12,7 +12,7 @@ class Tests:
        self.t = t
        self.L = L
 
-    def Linear(self, x, u):
+    def Linear(self, x, u,mode):
         match mode: 
             case "eta": 
                 #Here I return linear approximation to eta function
