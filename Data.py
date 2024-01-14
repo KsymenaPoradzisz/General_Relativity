@@ -12,13 +12,13 @@ class Gauss:
         self.L = L
     #I define tg(x) and cos(x) because they appear in the derivatives
 
-    def tg(x):
+    def tg(self,x):
      #Define compactified variable, L = 2/Pi
-        if x > 0 and x < 1:
+        if x > -1 and x < 1:
             tg = np.tan(np.pi * x/2.) * self.L
         elif x == 0:
             tg =  1e+6
-        elif x == 1:
+        elif abs(x) == 1:
             tg = -1e+6
         else:
             raise ValueError("argument should be in range [0,1]")
@@ -28,19 +28,19 @@ class Gauss:
     # Define a derivative of such variable, this is Sec^2 * Pi/2 * L, so just Sec^2 but we can have 
    
    # Different values of L, so i leave that
-    def secL(x):
-        if x >= 0 and x <= 1:
-            if(x != 1):
+    def secL(self,x):
+        if x >= -1 and x <= 1:
+            if(abs(x) != 1):
                 return np.pi/2. * 1/(np.cos(np.pi*x/2.))**2 * self.L
             else: 
                 return 1e+6
         else:
             raise ValueError("argument should be in range [0,1]")
     #This is the same secans, but without L, because it is convinient for second derivative
-    def sec(x):
-        if x >= 0 and x <= 1:
+    def sec(self,x):
+        if x >= -1 and x <= 1:
 
-            if(x != 1):
+            if(abs(x) != 1):
                 return 1/(np.cos(np.pi*x/2.))**2
             else: 
                 return 1e+6
@@ -61,7 +61,7 @@ class Gauss:
     
     def fbis(self, x):
         tempe = self.f(x) * self.L * self.L * np.pi**2/self.sigma**2
-        return  (-self.sec(x)**2/2. + (self.mu*self.sec(x)/self.sigma)**2 + self.mu * self.tg(x)/L * self.sec(x)/L - 2 * self.tan(x) * self.mu * self.sec(x)**2/self.sigma**2 - self.sec(x) * (self.tg(x)/self.L)**2 + self.tg(x)**2 * self.sec(x)**2/self.sigma**2) * tempe
+        return  (-self.sec(x)**2/2. + (self.mu*self.sec(x)/self.sigma)**2 + self.mu * self.tg(x)/self.L * self.sec(x)/self.L - 2 * self.tg(x) * self.mu * self.sec(x)**2/self.sigma**2 - self.sec(x) * (self.tg(x)/self.L)**2 + self.tg(x)**2 * self.sec(x)**2/self.sigma**2) * tempe
 
 
     def ftris(self, x):
@@ -75,7 +75,7 @@ class Gauss:
             self.mu * self.sec(x) * self.tg(x)/self.L**2 -
             6 * (self.tg(x)/self.sigma)**2 * self.sec(x)**2 +
             3 * self.mu * self.tg(x)**2 * self.L**2 /self.sigma**4 * self.sec(x)**3 -
-            self.tg(x)**3 * (self.sec(X)/self.L)**2 +3 * self.tg(x)**3 * (self.sec(x)/self.sigma)*2 -
+            self.tg(x)**3 * (self.sec(x)/self.L)**2 +3 * self.tg(x)**3 * (self.sec(x)/self.sigma)*2 -
             self.tg(x)**3 * self.L**2/self.sigma**4 * self.sec(x)**3) * tempe 
 
 #IT TURNS OUT YOU ALSO NEED 4TH DERIVATIVE :) 
@@ -117,15 +117,17 @@ class Eta(Data):
    # X - x grid; U - u grid
     def __init__(self, X: list, U: list) -> None:
         super(Eta, self).__init__(X, U)
-        self.eta = np.zeros((self.NX, self.NU))
+        self.eta = np.zeros((self.NU, self.NX))
+        self.U = U
+        self.X = X
 
     def init_cond(self, mode = "gauss"):
         match mode:
             case "gauss":
                 for i in range(self.NX):
                     for j in range(self.NU):
-                        u = U[j]
-                        r = X[i]
+                        u = self.U[j]
+                        r = self.X[i]
                         # r = 2./np.pi * np.tan(np.pi * x / 2)
                         tempGauss = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
                         f = tempGauss.f(r)
@@ -137,6 +139,7 @@ class Eta(Data):
                         self.eta[j, i] = -3/2 * (u*u - 1) / (r*r) *(-4.*dfzero + 2.*dfminus + 2.*df + r*ddfminus - r*ddf) if r != 0 else 1e+12 
 
                 self.eta = np.reshape(self.eta, -1)
+                return self
             case _:
                 raise ValueError("There is no mode you chose. Please choose one existing")   
 
@@ -145,15 +148,17 @@ class Kru(Data):
     def __init__(self, X: list, U: list) -> None:
         super(Kru, self).__init__(X, U)
         self.kru = np.zeros((self.NX,self.NU))
+        self.U = U
+        self.X = X
 
 
     def init_cond(self, mode = "gauss") -> None:
         match mode:
             case "gauss":
                 gaussian = Gauss(sigma = 0.5, mu = 0, epsilon = 0.00001) #example of gauss parameters
-                for i in range(NX):
-                    for j in range(NU):
-                        u, r = U[j], X[i]
+                for i in range(self.NX):
+                    for j in range(self.NU):
+                        u, r = self.U[j], self.X[i]
                         f = gaussian.fprim(r)
                         df = gaussian.fprim(r)
                         dfminus = gaussian.fprim(-r)
@@ -164,7 +169,8 @@ class Kru(Data):
                         dddfminus = gaussian.ftris(-r)
                         self.kru[i, j] = 3./2. * u/(r*r*r) * (-3 * dfminus + 3 * df + r * (-8 * ddf + ddf + ddfminus + r * dddfminus - r * dddf)) if r != 0 else 1e+12 
                 
-                return np.reshape(self.kru, -1)
+                self.kru = np.reshape(self.kru, -1)
+                return self
             case _:
                 raise ValueError("There is no mode you chose. Please choose one existing") 
 
