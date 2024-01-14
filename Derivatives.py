@@ -92,8 +92,8 @@ class Laplacian(Derivative):
 
         # case when gridR represents X - compactified Chebyshev spatial variable, else - space is restricted to a disc of radius=1
         if isGridRCompactified:
-            r = 2/np.pi * np.tan(np.pi / 2 * gridR.grid)                    # r = 2/pi * tan(pi/2 * x)
-            dr = np.diag(np.cos(np.pi/2 * gridR.grid)**2) @ DR(NR).matrix   # dr = cos^2(pi/2 * x) dx
+            r = 2/np.pi * np.tan(np.pi / 2 * gridR.grid)                    # r = 2/pi * tan(pi/2 * x) WARNING if L =! 2/Pi
+            dr = np.diag(1/np.cos(np.pi/2 * gridR.grid)**2) @ DR(NR).matrix   # dr = 1 / cos^2(pi/2 * x) dx
             rInverse = np.diag(1/r[1:NR//2])                                # diagonal matrix of 1/r for positive distances r
         else: 
             r = gridR.grid
