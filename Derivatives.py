@@ -1,5 +1,5 @@
 import numpy as np
-import Cheb as Ch
+from Cheb import Grid
 import Data
 from scipy.linalg import toeplitz
 
@@ -19,7 +19,7 @@ class DR(Derivative):
         
         # x - N dimensional array of Chebyshev points
         # D - Matrix (N)x(N) dimensional 
-        x = Ch.Grid(N, mode='cheb').grid
+        x = Grid(N, mode='cheb').grid
         c = np.ones(N, dtype=np.float64)
         c[0] = c[-1] = 2.0
         c *= (-1.0)**np.arange(0, N)
@@ -69,26 +69,26 @@ class DX(Derivative):
 
 
 class Laplacian(Derivative):
-    def __init__(self, gridR: Ch.Grid, gridTheta: Ch.Grid, gridPhi: Ch.Grid = None, mode="spherical", isGridRCompactified: bool = False) -> None:
+    def __init__(self, gridR: Grid, gridTheta: Grid, gridPhi: Grid = None, mode="spherical", isGridRCompactified: bool = False) -> None:
         # available modes: "spherical" (3D), "polar2D",  "cartesian3D", "cartesian2D"
         # modes "spherical", "polar3D" and "polar2D" will be used most extensively, hence the naming
         match mode:
             case "spherical":
                 self.matrix = self.spherical(gridR, gridTheta, gridPhi, isGridRCompactified)
             case "polar2D":
-                self.matrix = self.polar2D(gridR, gridTheta)
+                self.matrix = self.polar2D(gridR, gridTheta, isGridRCompactified)
             case "cartesian2D":
                 self.matrix = self.cartesian2D(gridR, gridTheta)
             case _:
                 ValueError('Available modes: "spherical" (3D), "polar" (2D), "cartesian2D".')
 
-    def spherical(self, gridR: Ch.Grid, gridTheta: Ch.Grid, gridPhi: Ch.Grid, isGridRCompactified: bool):
+    def spherical(self, gridR: Grid, gridU: Grid, gridPhi: Grid, isGridRCompactified: bool):
         # assuming cylindrical symmetry as it is the case in the project
         # thus the operator matrix will be of size (NR*NTheta) x (NR*NTheta)
 
         # x = array of compactified distance r: r = 2/pi * tan(pi/2 * x)
         # u = array of compactified spherical angle theta: u = cos(Theta)
-        NR, NTheta = len(gridR.grid), len(gridTheta.grid)
+        NR, NTheta = len(gridR.grid), len(gridU.grid)
 
         # case when gridR represents X - compactified Chebyshev spatial variable, else - space is restricted to a disc of radius=1
         if isGridRCompactified:
@@ -99,15 +99,13 @@ class Laplacian(Derivative):
             r = gridR.grid
             dr = DR(NR).matrix
 
-        # case when gridTheta represents U - compactified Chebyshev angular variable, else - uniform grid
-        if gridTheta.gridType == "cheb":
-            u = np.array([np.arccos(theta) for theta in gridTheta.grid])
-            u[0] += 1e-12
-            u[-1] -= 1e-12
-            du = np.diag(-1*np.sqrt(np.ones(NTheta) - gridTheta.grid**2)) @ DR(NTheta).matrix   #dTheta = -sqrt(1-u^2) du
+        # case when gridU represents U - compactified Chebyshev angular variable, else - uniform grid
+        if gridU.gridType == "cheb":
+            theta = np.array([np.arccos(u) for u in gridU.grid])
+            dTheta = np.diag(-1*np.sqrt(np.ones(NTheta) - gridU.grid**2)) @ DR(NTheta).matrix   #dTheta = -sqrt(1-u^2) du
         else:
-            u = gridTheta.grid
-            du = DTheta(NTheta).matrix
+            theta = gridU.grid
+            dTheta = DTheta(NTheta).matrix
 
 
         # get only positive part of radial grid
@@ -116,19 +114,19 @@ class Laplacian(Derivative):
         rInverse = rInverse[1:, 1:]                         # get rid of boundary r=0 radial point
 
         # 1/r**2 * ctg(Theta) * DTheta
-        CtgThetaPart = np.kron(rInverse @ rInverse, np.diag(1./np.tan(u)) @ du)
-
+        CtgThetaPart = np.kron(rInverse @ rInverse, np.diag(1./np.tan(theta)) @ dTheta)
+        
         # 1/r DR
         rInverseDrPart = blockSymmetrize(rInvDr, NTheta)
 
-        return self.polar2D(gridR, gridTheta) + CtgThetaPart + rInverseDrPart
+        return self.polar2D(gridR, gridU, isGridRCompactified) + CtgThetaPart + rInverseDrPart
         
 
-    def polar2D(self, gridR: Ch.Grid, gridTheta: Ch.Grid):
+    def polar2D(self, gridR: Grid, gridTheta: Grid, isGridRCompactified):
         NR, NTheta = gridR.size, gridTheta.size
 
         # case when gridR represents X - compactified Chebyshev spatial variable, else - space is restricted to a disc of radius=1
-        if not gridR.gridType == "cheb":
+        if isGridRCompactified:
             r = 2/np.pi * np.tan(np.pi / 2 * gridR.grid)                    # r = 2/pi * tan(pi/2 * x)
             dr = np.diag(np.cos(np.pi/2 * gridR.grid)**2) @ DR(NR).matrix   # dr = cos^2(pi/2 * x) dx
         else: 
@@ -137,24 +135,24 @@ class Laplacian(Derivative):
 
         # case when gridTheta represents U - compactified Chebyshev angular variable, else - uniform grid
         if gridTheta.gridType == "cheb":
-            du = np.diag(-1*np.sqrt(np.ones(NTheta) - gridTheta.grid**2)) @ DR(NTheta).matrix   #dTheta = -sqrt(1-u^2) du
+            dTheta = np.diag(-1*np.sqrt(np.ones(NTheta) - gridTheta.grid**2)) @ DR(NTheta).matrix   #dTheta = -sqrt(1-u^2) du
         else:
-            du = DTheta(NTheta).matrix
+            dTheta = DTheta(NTheta).matrix
 
         # get only positive part of radial grid
         rInverse = np.diag(1 / r[:NR//2])
-        rInvDr = (np.kron(np.identity(2), rInverse) @ dr)   # 1/R * DR
+        rInvDr = np.kron(np.identity(2), rInverse) @ dr     # 1/R * DR
         rInverse = rInverse[1:, 1:]                         # get rid of boundary r=0 radial point
 
         # create each of 2D polar laplacian compoment
         DrSqPart = blockSymmetrize(dr @ dr, NTheta)
         rInverseDrPart = blockSymmetrize(rInvDr, NTheta)        
-        rInverseSqDThetaSq = np.kron(rInverse @ rInverse, du @ du)
+        rInverseSqDThetaSq = np.kron(rInverse @ rInverse, dTheta @ dTheta)
 
-        return DrSqPart + rInverseDrPart + rInverseSqDThetaSq
+        return  rInverseDrPart + DrSqPart + rInverseSqDThetaSq
 
 
-    def cartesian2D(self, gridR: Ch.Grid, gridTheta: Ch.Grid):
+    def cartesian2D(self, gridR: Grid, gridTheta: Grid):
         if gridR.gridType == "cheb": DX = DR(gridR.size).matrix
         else: TypeError("Currently cartesian DX derivatives are supported only on Chebyshev grids.")
 
