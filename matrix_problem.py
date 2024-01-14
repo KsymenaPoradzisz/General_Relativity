@@ -38,8 +38,8 @@ def main():
     X = np.array(X)
     IDx = np.eye(dimR)
     IDu = np.eye(NU)
-    eta = Data.Eta(X, U).eta
-    kru = Data.Kru(X, U).kru
+    eta = Data.Eta(X, U).init_cond("gauss").eta
+    kru = Data.Kru(X, U).init_cond("gauss").kru
 
     # upper left block -> Du + Du*eta
     M11 = np.kron(IDx, DU) + np.diag(np.kron(IDx, DU) @ eta)
