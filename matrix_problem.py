@@ -10,9 +10,9 @@ def main():
     # Use Derivatives.py and cheb.py to get grid and matrices
     NR, NU = 62, 50
     dimR = (NR-2)//2
-    X = Ch.Grid(NR, mode='cheb').grid[1:NR//2]
+    X = Ch.Grid(NR, mode='cheb').grid[:NR//2]
     U = Ch.Grid(NU, mode='cheb').grid
-    DX = Div.DR(NR).matrix[1:-1, 1:-1]
+    DX = Div.DR(NR).matrix
     DU = Div.DR(NU).matrix
 
     # costh is just U, sinTh is just sqrt(1-u^2)
@@ -25,6 +25,7 @@ def main():
     sinPix = np.diag([(1/np.pi) * np.sin(np.pi * x) for x in X])
     sinPixDX = np.kron(np.eye(2), sinPix) @ DX
     sinPixDX = Div.blockSymmetrize(sinPixDX, NU)
+    sinPix = sinPix[1:, 1:]
 
     # And a "frac" matrix: 
     Ufrac = np.diag([2*u/(1-u*u) if (1-u*u) != 0 else 1e+12 for u in U])
@@ -35,7 +36,7 @@ def main():
     
     L = 2/np.pi
     #X = [L * np.tan(x * np.pi/2) if (x != 0 and x != 1) else (1e+5 if x == 0 else -1e+5) for x in X]
-    X = np.array(X)
+    X = np.array(X[1:])
     IDx = np.eye(dimR)
     IDu = np.eye(NU)
     eta = Data.Eta(X, U).init_cond("gauss").eta
