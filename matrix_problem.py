@@ -91,7 +91,7 @@ def main():
     # Plotting.PolarPlotter().plot(X, U, Krr)
     Krr = Krr.reshape((X.shape[0], U.shape[0]))
     Ktt = Ktt.reshape((X.shape[0], U.shape[0]))
-    plt.plot(X, Ktt[:, 20])
+    plt.plot(X, Krr[:, 20])
     plt.show()
 
 if __name__== "__main__":
