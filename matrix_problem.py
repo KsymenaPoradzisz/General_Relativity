@@ -4,6 +4,7 @@ import numpy as np
 import Data
 import Plotting
 import matplotlib.pyplot as plt
+from tests import *
 
 def main():    
     # Now let's head into the problem, define grids and matrices        
@@ -92,7 +93,20 @@ def main():
     Krr = Krr.reshape((X.shape[0], U.shape[0]))
     Ktt = Ktt.reshape((X.shape[0], U.shape[0]))
     plt.plot(X, Krr[:, 20])
+
+
+    temp = Tests(sigma = 0.5, epsilon = 0.000001, mode = 'Krr')
+    print(np.shape(X))
+    print(np.shape(U))
+    testKrr = np.zeros((len(X), len(U))) 
+    for i in range(len(X)):
+        for j in range(len(U)):
+            x = X[i]
+            u = U[j]
+            testKrr[i,j] = temp.Linear(x, u, mode= 'Krr')
+    plt.plot(X, testKrr[:,20])
     plt.show()
+
 
 if __name__== "__main__":
     main()

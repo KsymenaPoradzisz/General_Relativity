@@ -1,6 +1,6 @@
 from Data import Gauss
 import numpy as np
-
+import math
 #For now this test works only for t = 0, we need to think about how to make it work for t > 0 in the future
 
 class Tests:
@@ -37,18 +37,17 @@ class Tests:
                         tempGauss.ftetra(tempGauss.tg(x))
                         ) * 2./(3. * u * self.epsilon)
             case "Krr":
-                #ERR = FF[2] u rostwora
                 expression = (1 / (2 * self.L**5)) * 3 * (-1 + 3 * u**2) * self.epsilon * cot**3 * csc**2 * (
-                -3 * self.L * np.sin(np.pi * x) * tempGauss.f(self.t - self.L * np.tan((np.pi * x) / 2)) -
-                3 * self.L * np.sin(np.pi * x) * tempGauss.f(self.t + self.L * np.tan((np.pi * x) / 2)) -
-                3 * ERR(self.t - self.L * np.tan((np.pi * x) / 2)) -
-                3 * np.cos(np.pi * x) * ERR(self.t - self.L * np.tan((np.pi * x) / 2)) +
-                3 * ERR(self.t + self.L * np.tan((np.pi * x) / 2)) +
-                3 * np.cos(np.pi * x) * FF[2](t + self.L * np.tan((np.pi * x) / 2)) -
-                self.L**2 * tempGauss.fprim(self.t - self.L * np.tan((np.pi * x) / 2)) +
-                self.L**2 * np.cos(np.pi * x) * tempGauss.fprim(self.t - self.L * np.tan((np.pi * x) / 2)) +
-                self.L**2 * tempGauss.fprim(self.t + self.L * np.tan((np.pi * x) / 2)) -
-                self.L**2 * np.cos(np.pi * x) * tempGauss.fprim(self.t + self.L * np.tan((np.pi * x) / 2)))
+                -3 * self.L * np.sin(np.pi * x) * tempGauss.f(x) -
+                3 * self.L * np.sin(np.pi * x) * tempGauss.f(x) -
+                3 * math.erf(self.L * np.tan((np.pi * x) / 2)) -
+                3 * np.cos(np.pi * x) * math.erf(self.L * np.tan((np.pi * x) / 2)) +
+                3 * math.erf(self.L * np.tan((np.pi * x) / 2)) +
+                3 * np.cos(np.pi * x) * math.erf(self.L * np.tan((np.pi * x) / 2)) -
+                self.L**2 * tempGauss.fprim(x) +
+                self.L**2 * np.cos(np.pi * x) * tempGauss.fprim(x) +
+                self.L**2 * tempGauss.fprim(x) -
+                self.L**2 * np.cos(np.pi * x) * tempGauss.fprim(x))
                 return expression
 
 
