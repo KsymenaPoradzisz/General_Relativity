@@ -1,6 +1,7 @@
 import numpy as np
 from Cheb import Grid
 import Data
+import Utils
 from scipy.linalg import toeplitz
 
 # storage for derivative matrices
@@ -80,7 +81,7 @@ class Laplacian(Derivative):
             case "cartesian2D":
                 self.matrix = self.cartesian2D(gridR, gridTheta)
             case _:
-                ValueError('Available modes: "spherical" (3D), "polar" (2D), "cartesian2D".')
+                raise ValueError('Available modes: "spherical" (3D), "polar" (2D), "cartesian2D".')
 
     def spherical(self, gridR: Grid, gridU: Grid, gridPhi: Grid, isGridRCompactified: bool):
         # assuming cylindrical symmetry as it is the case in the project
@@ -141,8 +142,8 @@ class Laplacian(Derivative):
 
         # get only positive part of radial grid
         rInverse = np.diag(1 / r[:NR//2])
-        rInvDr = np.kron(np.identity(2), rInverse) @ dr     # 1/R * DR
-        rInverse = rInverse[1:, 1:]                         # get rid of boundary r=0 radial point
+        rInvDr = np.kron(np.identity(2), rInverse) @ dr                    # 1/R * DR
+        rInverse = Utils.stripMatrix(rInverse, last=False)                 # get rid of boundary r=0 radial point
 
         # create each of 2D polar laplacian compoment
         DrSqPart = blockSymmetrize(dr @ dr, NTheta)
@@ -154,15 +155,15 @@ class Laplacian(Derivative):
 
     def cartesian2D(self, gridR: Grid, gridTheta: Grid):
         if gridR.gridType == "cheb": DX = DR(gridR.size).matrix
-        else: TypeError("Currently cartesian DX derivatives are supported only on Chebyshev grids.")
+        else: raise TypeError("Currently cartesian DX derivatives are supported only on Chebyshev grids.")
 
         if gridTheta.gridType == "cheb": DY = DR(gridTheta.size).matrix
-        else: TypeError("Currently cartesian DY derivatives are supported only on Chebyshev grids.")
+        else: raise TypeError("Currently cartesian DY derivatives are supported only on Chebyshev grids.")
 
         # trim first nad last row nad column of matrices -> imposing Dirichlet zero boundary conditions
         dimX, dimY = DX.shape[0]-2, DY.shape[0]-2
-        dxSquared = (DX @ DX)[1:-1, 1:-1]
-        dySquared = (DY @ DY)[1:-1, 1:-1]
+        dxSquared = Utils.stripMatrix(DX @ DX)
+        dySquared = Utils.stripMatrix(DY @ DY)
 
         return np.kron(np.identity(dimX), dySquared) + np.kron(dxSquared, np.identity(dimY))
 

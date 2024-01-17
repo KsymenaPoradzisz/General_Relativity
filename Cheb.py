@@ -27,6 +27,12 @@ class Grid:
             
     def __repr__(self) -> str:
         return f"Size: {self.size}\nMode: {self.gridType}\n{self.grid}"
+    
+    def halfGrid(self):
+        return self.grid[ : self.size//2]
+
+    def halfGridNoBoundary(self):
+        return self.grid[1 : self.size//2]
 
 
                 

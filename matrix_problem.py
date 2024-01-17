@@ -1,5 +1,5 @@
 import Derivatives as Div
-import Cheb as Ch
+from Cheb import Grid
 import numpy as np
 import Data
 import Plotting
@@ -11,8 +11,8 @@ def main():
     # Use Derivatives.py and cheb.py to get grid and matrices
     NR, NU = 62, 50
     dimR = (NR-2)//2
-    X = Ch.Grid(NR, mode='cheb').grid[:NR//2]
-    U = Ch.Grid(NU, mode='cheb').grid
+    X = Grid(NR, mode='cheb').grid[:NR//2]
+    U = Grid(NU, mode='cheb').grid
     DX = Div.DR(NR).matrix
     DU = Div.DR(NU).matrix
 
