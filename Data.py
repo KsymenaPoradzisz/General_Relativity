@@ -52,7 +52,7 @@ class Gauss:
    #Now define the gauss function up to 3rd derivative
 
     def f(self, x):
-        return self.epsilon*np.exp((self.tg(x) - self.mu)**2 / self.sigma**2)
+        return self.epsilon*np.exp(-1*(self.tg(x) - self.mu)**2 / self.sigma**2)
     
     def fprim(self, x):
         return self.f(x) * (-2 * (self.tg(x) - self.mu)) * self.secL(x)

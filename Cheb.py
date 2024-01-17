@@ -18,6 +18,10 @@ class Grid:
                 # self.grid = np.flip(self.grid) # make grid running from -1 to 1 instead of 1 to -1
                 if N % 2 == 1:
                     self.grid[N//2] = 0.0   # only for N odd!
+                
+                # remove singularities at poles
+                self.grid[0] -= 1e-12
+                self.grid[-1] += 1e-12
             case _:
                 raise ValueError("Choose 'uni' or 'cheb' mode!")
             
