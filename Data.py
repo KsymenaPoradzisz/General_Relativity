@@ -147,7 +147,7 @@ class Kru(Data):
     # X - spatial grid; U - angular grid
     def __init__(self, X: list, U: list) -> None:
         super(Kru, self).__init__(X, U)
-        self.kru = np.zeros((self.NX,self.NU))
+        self.kru = np.zeros((self.NU,self.NX))
         self.U = U
         self.X = X
 
@@ -167,7 +167,7 @@ class Kru(Data):
                         ddfminus = gaussian.fbis(-r)
                         dddf = gaussian.ftris(r)
                         dddfminus = gaussian.ftris(-r)
-                        self.kru[i, j] = 3./2. * u/(r*r*r) * (-3 * dfminus + 3 * df + r * (-8 * ddf + ddf + ddfminus + r * dddfminus - r * dddf)) if r != 0 else 1e+12 
+                        self.kru[j, i] = 3./2. * u/(r*r*r) * (-3 * dfminus + 3 * df + r * (-8 * ddf + ddf + ddfminus + r * dddfminus - r * dddf)) if r != 0 else 1e+12 
                 
                 self.kru = np.reshape(self.kru, -1)
                 return self
