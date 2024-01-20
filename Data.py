@@ -1,7 +1,8 @@
 import numpy as np
 import numpy.typing as npt
-import Cheb as Ch
 import Derivatives as Div
+from Cheb import Grid
+from Utils import gridToArray
 
 
 class Gauss:
@@ -12,7 +13,7 @@ class Gauss:
         self.L = L
     #I define tg(x) and cos(x) because they appear in the derivatives
 
-    def tg(self,x):
+    def tg(self, x):
      #Define compactified variable, L = 2/Pi
         if x > -1 and x < 1:
             tg = np.tan(np.pi * x/2.) * self.L
@@ -28,7 +29,7 @@ class Gauss:
     # Define a derivative of such variable, this is Sec^2 * Pi/2 * L, so just Sec^2 but we can have 
    
    # Different values of L, so i leave that
-    def secL(self,x):
+    def secL(self, x):
         if x >= -1 and x <= 1:
             if(abs(x) != 1):
                 return np.pi/2. * 1/(np.cos(np.pi*x/2.))**2 * self.L
@@ -37,7 +38,7 @@ class Gauss:
         else:
             raise ValueError("argument should be in range [0,1]")
     #This is the same secans, but without L, because it is convinient for second derivative
-    def sec(self,x):
+    def sec(self, x):
         if x >= -1 and x <= 1:
 
             if(abs(x) != 1):
@@ -109,17 +110,19 @@ class Gauss:
 
 
 class Data: 
-    def __init__(self, X: list, U: list) -> None:
-        self.NX = len(X)
-        self.NU = len(U)
+    def __init__(self, X: Grid|list, U: Grid|list) -> None:
+        self.NX = len(gridToArray(X))
+        self.NU = len(gridToArray(U))
+
+
 class Eta(Data):
-     # for the sake of numerical stability we choose \Eta/R
-   # X - x grid; U - u grid
-    def __init__(self, X: list, U: list) -> None:
+    # for the sake of numerical stability we choose \Eta/R
+    # X - x grid; U - u grid
+    def __init__(self, X: Grid|list, U: Grid|list) -> None:
         super(Eta, self).__init__(X, U)
         self.eta = np.zeros((self.NU, self.NX))
-        self.U = U
-        self.X = X
+        self.U = gridToArray(U)
+        self.X = gridToArray(X)
 
     def init_cond(self, mode = "gauss"):
         match mode:
@@ -145,11 +148,11 @@ class Eta(Data):
 
 class Kru(Data):
     # X - spatial grid; U - angular grid
-    def __init__(self, X: list, U: list) -> None:
+    def __init__(self, X: Grid|list, U: Grid|list) -> None:
         super(Kru, self).__init__(X, U)
-        self.kru = np.zeros((self.NU,self.NX))
-        self.U = U
-        self.X = X
+        self.kru = np.zeros((self.NU, self.NX))
+        self.U = gridToArray(U)
+        self.X = gridToArray(X)
 
 
     def init_cond(self, mode = "gauss") -> None:
@@ -199,6 +202,7 @@ class Alpha(Data):
 class DiagId:
     def __init__(self, diagN: int) -> None:
         self.matrix = np.identity(diagN)
+
 
 class AntiDiagId:
     def __init__(self, diagN: int) -> None:

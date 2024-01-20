@@ -1,7 +1,6 @@
 import numpy as np
-from Cheb import Grid
 import Data
-import Utils
+from Cheb import Grid
 from scipy.linalg import toeplitz
 
 # storage for derivative matrices
@@ -143,7 +142,7 @@ class Laplacian(Derivative):
         # get only positive part of radial grid
         rInverse = np.diag(1 / r[:NR//2])
         rInvDr = np.kron(np.identity(2), rInverse) @ dr                    # 1/R * DR
-        rInverse = Utils.stripMatrix(rInverse, last=False)                 # get rid of boundary r=0 radial point
+        rInverse = rInverse[1:, 1:]                # get rid of boundary r=0 radial point
 
         # create each of 2D polar laplacian compoment
         DrSqPart = blockSymmetrize(dr @ dr, NTheta)
@@ -162,8 +161,8 @@ class Laplacian(Derivative):
 
         # trim first nad last row nad column of matrices -> imposing Dirichlet zero boundary conditions
         dimX, dimY = DX.shape[0]-2, DY.shape[0]-2
-        dxSquared = Utils.stripMatrix(DX @ DX)
-        dySquared = Utils.stripMatrix(DY @ DY)
+        dxSquared = (DX @ DX)[1:-1, 1:-1]
+        dySquared = (DY @ DY)[1:-1, 1:-1]
 
         return np.kron(np.identity(dimX), dySquared) + np.kron(dxSquared, np.identity(dimY))
 
